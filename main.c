@@ -1,5 +1,7 @@
-#include<stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#define MAX_CARDS 44
 
 enum Suit {
     SPADES, HEARTS, CLUBS, DIAMONDS
@@ -55,16 +57,56 @@ void init_deck(Card** deck) {
     }
 }
 
-void print_deck(Card** deck) {
-    for (int i=0; i<44; i++) {
-        printf("%s of %s; ", rank_to_cardName(deck[i]->rank), enum_to_suit_translation(deck[i]->suit));
+void shuffle_deck(Card** deck) {
+    const int number_of_permutations = 400;
+    srand(time(NULL));
+
+    for (int i=0; i < number_of_permutations; i++) {
+        int index1 = rand() % MAX_CARDS;
+        int index2 = rand() % MAX_CARDS;
+
+        Card* temp_card = malloc(sizeof(Card));
+        temp_card->rank = deck[index1]->rank;
+        temp_card->suit = deck[index1]->suit;
+
+        deck[index1]->rank = deck[index2]->rank;
+        deck[index1]->suit = deck[index2]->suit;
+
+        deck[index2]->rank = temp_card->rank;
+        deck[index2]->suit = temp_card->suit;
+
+        free(temp_card);
     }
 }
 
-int main() {
-    Card* deck[44];
-    init_deck(deck);
-    // print_deck(deck);
+void print_deck(Card** deck) {
+    for (int i=0; i<MAX_CARDS; i++) {
+        printf("%s of %s; ", rank_to_cardName(deck[i]->rank), enum_to_suit_translation(deck[i]->suit));
+        if ((i+1) % 4 == 0 && i >> 0) {
+            puts("");
+        }
+    }
+}
 
+void free_deck(Card** deck) {
+    for (int i=0; i<MAX_CARDS; i++) {
+        free(deck[i]);
+    }
+}
+
+void print_handDealt() {
+
+}
+
+// For MVP ill skip having to manage rooms that player runs from
+int main() {
+    Card* deck[MAX_CARDS];
+    init_deck(deck);
+    shuffle_deck(deck);
+    print_deck(deck);
+
+
+
+    free_deck(deck);
     return 0;
 }
