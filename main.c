@@ -1,7 +1,9 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #define MAX_CARDS 44
+#define MAX_HAND_SIZE 4
 
 enum Suit {
     SPADES, HEARTS, CLUBS, DIAMONDS
@@ -18,7 +20,7 @@ char* enum_to_suit_translation(enum Suit suit_int) {
         case HEARTS: return "Hearts";
         case CLUBS: return "Clubs";
         case DIAMONDS: return "Diamonds";
-        default: printf("Suit isn't a default one.");
+        default: fprintf(stderr, "Error: Suit for translation isn't 0 to 3.");
     }
 }
 
@@ -94,18 +96,49 @@ void free_deck(Card** deck) {
     }
 }
 
-void print_handDealt() {
+struct Player {
+    Card** hand;
+    int hand_card_count;
+    int8_t health;
+} typedef Player;
 
+void deal_hand(Player* player, int* deck_top, Card** deck) {
+    if (player->hand_card_count == MAX_HAND_SIZE) {
+        fprintf(stderr, "Error: Tried dealing hand when hand is full.");
+        exit(1);
+    }
+    if (player->hand == 0) {
+        player->hand = malloc(MAX_HAND_SIZE * sizeof(Card));
+    }
+
+    for (int i=0; i < MAX_HAND_SIZE - player->hand_card_count; i++) {
+        player->hand[i + player->hand_card_count] = deck[*deck_top + i];
+        deck_top++;
+    }
 }
+
+void print_currentHand(Player* player) {
+    for(int i=0; i<MAX_HAND_SIZE; i++) {
+        printf("%s of %s; ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
+        // TODO: Change confusing naming "hand.hand"
+    }
+}
+
+void print_help(){} // TODO: Make a tutorial kinda
 
 // For MVP ill skip having to manage rooms that player runs from
 int main() {
     Card* deck[MAX_CARDS];
+    int* deck_top = malloc(sizeof(int));
+    *deck_top = 0;
+    Player player = {0, 0, 20};
     init_deck(deck);
     shuffle_deck(deck);
     print_deck(deck);
 
+    deal_hand(&player, deck_top, deck);
 
+    print_currentHand(&player);
 
     free_deck(deck);
     return 0;
