@@ -1,6 +1,8 @@
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #define MAX_CARDS 44
 #define MAX_HAND_SIZE 4
@@ -126,12 +128,18 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
     }
 }
 
-void print_currentHand(Player* player) {
+void print_player_status(Player* player) {
     crash_if_player_null(player);
+    printf("Player health: %d  \nRoom: ", player->health);
+
     for(int i=0; i<MAX_HAND_SIZE; i++) {
-        printf("%s of %s; ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
-        // TODO: Change confusing naming "hand.hand"
+        printf("%s of %s | ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
     }
+
+    if (player->weapon != 0) {
+        printf("\nPlayer weapon: %s of %s", rank_to_cardName(player->weapon->rank), enum_to_suit_translation(player->weapon->suit));
+    }
+    puts("");
 }
 
 void fight_with_weapon(Player* player, Card* monster) {
@@ -196,6 +204,9 @@ void use_card(Player* player, int card_index) {
         case DIAMONDS: take_weapon(player, chosen_card);
         default: fprintf(stderr, "Error: Suit for translation isn't 0 to 3.");
     }
+
+    player->hand[card_index] = 0;
+    player->hand_card_count = player->hand_card_count - 1;
 }
 
 // For MVP idc about managing rooms that player runs from, not a bug, a feature
@@ -206,13 +217,32 @@ void game_loop() {
     Player player = {0, 0, 20};
     init_deck(deck);
     shuffle_deck(deck);
+    deal_hand(&player, deck_top, deck);
+
+    printf("Hello, this is Scoundrel(Original concept by Zach Gage and Kurt Bieg).\n Just go online for rules, if youre not familiar, i ain't explainin shit\n\n");
+    printf("Press enter to start...");
+
+    char *user_input = NULL;
+    size_t buff_size = 32;
+    char* end_phrase = "exit\n";
+
+    getline(&user_input, &buff_size, stdin);
+
+    while (strcmp(user_input, end_phrase) != 0) {
+        print_player_status(&player);
+
+        printf("Your move: ");
+        getline(&user_input, &buff_size, stdin);
+    }
 
     free_deck(deck);
+    free(user_input);
 }
 
 void print_help(){} // TODO: Make a tutorial kinda
 
 int main() {
+    game_loop();
 
     return 0;
 }
