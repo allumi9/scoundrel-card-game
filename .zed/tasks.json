@@ -15,7 +15,7 @@
     // * `always` — always show the task's pane, and focus the corresponding tab in it (default)
     // * `no_focus` — always show the task's pane, add the task's tab in it, but don't focus it
     // * `never` — do not alter focus, but still add/reuse the task's tab in its pane
-    "reveal": "always",
+    "reveal": "never",
     // What to do with the terminal pane and tab, after the command has finished:
     // * `never` — Do nothing when the command finishes (default)
     // * `always` — always hide the terminal tab, hide the pane also if it was the last tab in it
@@ -24,21 +24,6 @@
     "shell": {
       "program": "zsh"
     },
-    // Which shell to use when running a task inside the terminal.
-    // May take 3 values:
-    // 1. (default) Use the system's default terminal configuration in /etc/passwd
-    //      "shell": "system"
-    // 2. A program:
-    //      "shell": {
-    //        "program": "sh"
-    //      }
-    // 3. A program with arguments:
-    //     "shell": {
-    //         "with_arguments": {
-    //           "program": "/bin/bash",
-    //           "args": ["--login"]
-    //         }
-    //     }
     // Whether to show the task line in the output of the spawned task, defaults to `true`.
     "show_summary": true,
     // Whether to show the command line in the output of the spawned task, defaults to `true`.

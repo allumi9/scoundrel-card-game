@@ -100,9 +100,18 @@ struct Player {
     Card** hand;
     int hand_card_count;
     int8_t health;
+    Card* weapon;
+    Card* current_top_monster;
 } typedef Player;
 
+void crash_if_player_null(Player* player) {
+    if (player == 0) {
+        fprintf(stderr, "Error: Player was null on use, idk where");
+    }
+}
+
 void deal_hand(Player* player, int* deck_top, Card** deck) {
+    crash_if_player_null(player);
     if (player->hand_card_count == MAX_HAND_SIZE) {
         fprintf(stderr, "Error: Tried dealing hand when hand is full.");
         exit(1);
@@ -118,28 +127,92 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
 }
 
 void print_currentHand(Player* player) {
+    crash_if_player_null(player);
     for(int i=0; i<MAX_HAND_SIZE; i++) {
         printf("%s of %s; ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
         // TODO: Change confusing naming "hand.hand"
     }
 }
 
-void print_help(){} // TODO: Make a tutorial kinda
+void fight_with_weapon(Player* player, Card* monster) {
+    int damage = player->weapon->rank - monster->rank;
 
-// For MVP ill skip having to manage rooms that player runs from
-int main() {
+    if (player->health <= damage) {
+        printf("\nh i j k Lost\n");
+        exit(0);
+    }
+
+    player->health = player->health - damage;
+}
+void fight_with_hands(Player* player, Card* monster) {
+    int damage = monster->rank;
+
+    if (player->health <= damage) {
+        printf("\nh i j k Lost\n");
+        exit(0);
+    }
+
+    player->health = player->health - damage;
+}
+
+void fight_monster(Player* player, Card* monster) {
+    Card* weapon_top_monster = player->current_top_monster;
+
+    if (weapon_top_monster != 0) {
+        if (weapon_top_monster->rank > monster->rank) {
+            fight_with_hands(player, monster);
+            return;
+        } else {
+            fight_with_weapon(player, monster);
+        }
+    }
+
+    if (player->weapon == 0 || player->weapon->rank < monster->rank ) {
+        fight_with_hands(player, monster);
+        return;
+    }
+
+    fight_with_weapon(player, monster);
+}
+
+void use_healing_potion(Player* player, Card* card) {}
+void take_weapon(Player* player, Card* card) {
+    player->weapon = card;
+}
+
+void use_card(Player* player, int card_index) {
+    crash_if_player_null(player);
+    if (card_index <= 0 || card_index >= 5 || player->hand[card_index] == 0) {
+        printf("No card there, please choose a valid index for a card.\n");
+        return;
+    }
+
+    Card* chosen_card = player->hand[card_index];
+
+    switch (chosen_card->suit) {
+        case SPADES: fight_monster(player, chosen_card);
+        case HEARTS: use_healing_potion(player, chosen_card);
+        case CLUBS: fight_monster(player, chosen_card);
+        case DIAMONDS: take_weapon(player, chosen_card);
+        default: fprintf(stderr, "Error: Suit for translation isn't 0 to 3.");
+    }
+}
+
+// For MVP idc about managing rooms that player runs from, not a bug, a feature
+void game_loop() {
     Card* deck[MAX_CARDS];
     int* deck_top = malloc(sizeof(int));
     *deck_top = 0;
     Player player = {0, 0, 20};
     init_deck(deck);
     shuffle_deck(deck);
-    print_deck(deck);
-
-    deal_hand(&player, deck_top, deck);
-
-    print_currentHand(&player);
 
     free_deck(deck);
+}
+
+void print_help(){} // TODO: Make a tutorial kinda
+
+int main() {
+
     return 0;
 }
