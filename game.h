@@ -5,6 +5,8 @@
 #include <string.h>
 #include <time.h>
 #pragma once
+#define MAX_CARDS 44
+#define MAX_HAND_SIZE 4
 
 enum Suit {
     SPADES, HEARTS, CLUBS, DIAMONDS

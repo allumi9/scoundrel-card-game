@@ -1,3 +1,4 @@
 app
 .zed
 *.o
+test_bin

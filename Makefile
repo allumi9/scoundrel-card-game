@@ -9,3 +9,6 @@ game.o: game.c game.h
 
 clean:
 	rm *.o
+
+test:
+	gcc test_game.c game.c -lcriterion -o test_bin && ./test_bin

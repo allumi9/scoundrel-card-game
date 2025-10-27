@@ -5,8 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include "game.h"
-#define MAX_CARDS 44
-#define MAX_HAND_SIZE 4
+
 
 char* enum_to_suit_translation(enum Suit suit_int) {
     switch (suit_int) {
@@ -48,7 +47,6 @@ void init_deck(Card** deck) {
             newCard->suit = curr_suit;
             deck[card_counter] = newCard;
             card_counter++;
-
         }
     }
 }
