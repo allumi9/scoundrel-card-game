@@ -130,27 +130,40 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
 
 void print_player_status(Player* player) {
     crash_if_player_null(player);
-    printf("Player health: %d  \nRoom: ", player->health);
+    printf("Player: HP %d", player->health);
+    if (player->weapon != 0) {
+            printf(" / ATK: %d", player->weapon->rank);
+    }
+    if (player->current_top_monster != 0) {
+            printf(" / TOP_MONST: %d", player->current_top_monster->rank);
+    }
 
+    printf("\nRoom: ");
     for(int i=0; i<MAX_HAND_SIZE; i++) {
+        if (player->hand[i] == 0) {
+            printf("-none- | ");
+            continue;
+        }
         printf("%s of %s | ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
     }
 
-    if (player->weapon != 0) {
-        printf("\nPlayer weapon: %s of %s", rank_to_cardName(player->weapon->rank), enum_to_suit_translation(player->weapon->suit));
-    }
     puts("");
 }
 
 void fight_with_weapon(Player* player, Card* monster) {
-    int damage = player->weapon->rank - monster->rank;
+    printf("Fighting %d with weapon\n\n", monster->rank);
+    int damage = monster->rank - player->weapon->rank;
 
     if (player->health <= damage) {
         printf("\nh i j k Lost\n");
         exit(0);
     }
 
-    player->health = player->health - damage;
+    if (damage > 0) {
+        player->health = player->health - damage;
+    }
+
+    player->current_top_monster = monster;
 }
 void fight_with_hands(Player* player, Card* monster) {
     int damage = monster->rank;
@@ -166,16 +179,16 @@ void fight_with_hands(Player* player, Card* monster) {
 void fight_monster(Player* player, Card* monster) {
     Card* weapon_top_monster = player->current_top_monster;
 
-    if (weapon_top_monster != 0) {
-        if (weapon_top_monster->rank > monster->rank) {
+    if (weapon_top_monster != NULL) {
+        if (weapon_top_monster->rank < monster->rank) {
             fight_with_hands(player, monster);
-            return;
         } else {
             fight_with_weapon(player, monster);
         }
+        return;
     }
 
-    if (player->weapon == 0 || player->weapon->rank < monster->rank ) {
+    if (player->weapon == 0) {
         fight_with_hands(player, monster);
         return;
     }
@@ -185,24 +198,35 @@ void fight_monster(Player* player, Card* monster) {
 
 void use_healing_potion(Player* player, Card* card) {}
 void take_weapon(Player* player, Card* card) {
+    printf("Taking new weapon %d.\n\n", card->rank);
     player->weapon = card;
+    player->current_top_monster = 0;
 }
 
 void use_card(Player* player, int card_index) {
     crash_if_player_null(player);
-    if (card_index <= 0 || card_index >= 5 || player->hand[card_index] == 0) {
+    if (card_index <= 0 || card_index >= 5 || player->hand[card_index - 1] == 0) {
         printf("No card there, please choose a valid index for a card.\n");
         return;
     }
 
+    card_index = card_index - 1;
+
     Card* chosen_card = player->hand[card_index];
 
     switch (chosen_card->suit) {
-        case SPADES: fight_monster(player, chosen_card);
-        case HEARTS: use_healing_potion(player, chosen_card);
-        case CLUBS: fight_monster(player, chosen_card);
-        case DIAMONDS: take_weapon(player, chosen_card);
-        default: fprintf(stderr, "Error: Suit for translation isn't 0 to 3.");
+        case SPADES:
+            fight_monster(player, chosen_card);
+            break;
+        case HEARTS:
+            use_healing_potion(player, chosen_card);
+            break;
+        case CLUBS:
+            fight_monster(player, chosen_card);
+            break;
+        case DIAMONDS:
+            take_weapon(player, chosen_card);
+            break;
     }
 
     player->hand[card_index] = 0;
@@ -214,26 +238,51 @@ void game_loop() {
     Card* deck[MAX_CARDS];
     int* deck_top = malloc(sizeof(int));
     *deck_top = 0;
-    Player player = {0, 0, 20};
+    Player* player = malloc(sizeof(Player));
+    player->hand_card_count = 0;
+    player->health = 20;
     init_deck(deck);
     shuffle_deck(deck);
-    deal_hand(&player, deck_top, deck);
+    deal_hand(player, deck_top, deck);
 
     printf("Hello, this is Scoundrel(Original concept by Zach Gage and Kurt Bieg).\n Just go online for rules, if youre not familiar, i ain't explainin shit\n\n");
-    printf("Press enter to start...");
 
     char *user_input = NULL;
     size_t buff_size = 32;
     char* end_phrase = "exit\n";
 
-    getline(&user_input, &buff_size, stdin);
-
-    while (strcmp(user_input, end_phrase) != 0) {
-        print_player_status(&player);
+    do {
+        printf("-------------------\n");
+        print_player_status(player);
 
         printf("Your move: ");
         getline(&user_input, &buff_size, stdin);
-    }
+
+        char *token = malloc(sizeof(user_input));
+        char* user_input_copy = strdup(user_input);
+        char** user_command = calloc(2, sizeof(user_input));
+
+        for (int i=0; i < 2; i++) {
+            token = strsep(&user_input_copy, " ");
+            if (token != NULL) {
+                user_command[i] = token;
+            }
+        }
+
+        if (user_command[0] == 0) {
+            fprintf(stderr, "Error: user_command is null, tokenizing didn't work probably\n");
+            exit(1);
+        }
+
+        // printf("Debug: %s; %d;\n", user_command[0], user_command[1][0] - '0');
+
+        if (strcmp(user_command[0], "use") == 0) {
+            // puts("in final if");
+            use_card(player, user_command[1][0] - '0');
+        }
+
+        free(user_command);
+    } while (strcmp(user_input, end_phrase) != 0);
 
     free_deck(deck);
     free(user_input);
