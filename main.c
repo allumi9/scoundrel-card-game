@@ -151,7 +151,7 @@ void print_player_status(Player* player) {
 }
 
 void fight_with_weapon(Player* player, Card* monster) {
-    printf("Fighting %d with weapon\n\n", monster->rank);
+    printf("Fighting DMG:%d with weapon\n\n", monster->rank);
     int damage = monster->rank - player->weapon->rank;
 
     if (player->health <= damage) {
@@ -166,6 +166,7 @@ void fight_with_weapon(Player* player, Card* monster) {
     player->current_top_monster = monster;
 }
 void fight_with_hands(Player* player, Card* monster) {
+    printf("Fighting DMG:%d with hands\n\n", monster->rank);
     int damage = monster->rank;
 
     if (player->health <= damage) {
@@ -196,9 +197,21 @@ void fight_monster(Player* player, Card* monster) {
     fight_with_weapon(player, monster);
 }
 
-void use_healing_potion(Player* player, Card* card) {}
+void use_healing_potion(Player* player, Card* card) {
+    printf("Taking potion HP:%d.\n\n", card->rank);
+    int final_health = player->health + card->rank;
+
+    if (player->health + card->rank >= 20) {
+        player->health = 20;
+        return;
+    }
+
+    player->health = player->health + card->rank;
+}
+
+
 void take_weapon(Player* player, Card* card) {
-    printf("Taking new weapon %d.\n\n", card->rank);
+    printf("Taking new weapon ATK:%d.\n\n", card->rank);
     player->weapon = card;
     player->current_top_monster = 0;
 }
@@ -274,10 +287,7 @@ void game_loop() {
             exit(1);
         }
 
-        // printf("Debug: %s; %d;\n", user_command[0], user_command[1][0] - '0');
-
         if (strcmp(user_command[0], "use") == 0) {
-            // puts("in final if");
             use_card(player, user_command[1][0] - '0');
         }
 
