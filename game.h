@@ -46,6 +46,7 @@ void use_healing_potion(Player* player, Card* card);
 void take_weapon(Player* player, Card* card);
 
 void use_card(Player* player, int card_index);
+char** parse_str_into_tokens(char* user_input);
 
 void game_loop();
 

@@ -191,7 +191,6 @@ void use_healing_potion(Player* player, Card* card) {
     player->health = player->health + card->rank;
 }
 
-
 void take_weapon(Player* player, Card* card) {
     printf("Taking new weapon ATK:%d.\n\n", card->rank);
     player->weapon = card;
@@ -206,7 +205,6 @@ void use_card(Player* player, int card_index) {
     }
 
     card_index = card_index - 1;
-
     Card* chosen_card = player->hand[card_index];
 
     switch (chosen_card->suit) {
@@ -228,13 +226,31 @@ void use_card(Player* player, int card_index) {
     player->hand_card_count = player->hand_card_count - 1;
 }
 
+char** parse_str_into_tokens(char* user_input) {
+    char *token = malloc(sizeof(user_input));
+    char* user_input_copy = strdup(user_input);
+    char** user_command = calloc(2, sizeof(user_input));
+
+    for (int i=0; i < 2; i++) {
+        token = strsep(&user_input_copy, " ");
+        if (token != NULL) {
+            user_command[i] = token;
+        }
+    }
+    if (user_command[0] == 0) {
+        fprintf(stderr, "Error: user_command is null, tokenizing didn't work probably\n");
+        exit(1);
+    }
+
+    return user_command;
+}
+
 // For MVP idc about managing rooms that player runs from, not a bug, a feature
 void game_loop() {
     Card* deck[MAX_CARDS];
     int* deck_top = malloc(sizeof(int));
     *deck_top = 0;
-    Player* player = malloc(sizeof(Player));
-    player->hand_card_count = 0;
+    Player* player = calloc(1, sizeof(Player));
     player->health = 20;
     init_deck(deck);
     shuffle_deck(deck);
@@ -253,24 +269,15 @@ void game_loop() {
         printf("Your move: ");
         getline(&user_input, &buff_size, stdin);
 
-        char *token = malloc(sizeof(user_input));
-        char* user_input_copy = strdup(user_input);
-        char** user_command = calloc(2, sizeof(user_input));
-
-        for (int i=0; i < 2; i++) {
-            token = strsep(&user_input_copy, " ");
-            if (token != NULL) {
-                user_command[i] = token;
-            }
-        }
-
-        if (user_command[0] == 0) {
-            fprintf(stderr, "Error: user_command is null, tokenizing didn't work probably\n");
-            exit(1);
-        }
+        char** user_command = parse_str_into_tokens(user_input);
 
         if (strcmp(user_command[0], "use") == 0) {
             use_card(player, user_command[1][0] - '0');
+        } else {
+            if (strcmp(user_command[0], end_phrase) == 0) {
+                break;
+            }
+            puts("I don't understand, try again. E.g. \'use 1\'");
         }
 
         free(user_command);
