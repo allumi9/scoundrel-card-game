@@ -104,9 +104,15 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
         player->hand = malloc(MAX_HAND_SIZE * sizeof(Card));
     }
 
-    for (int i=0; i < MAX_HAND_SIZE - player->hand_card_count; i++) {
-        player->hand[i + player->hand_card_count] = deck[*deck_top + i];
-        deck_top++;
+    int init_card_count = player->hand_card_count;
+    int init_deck_top = *deck_top;
+    for (int i=0; i < MAX_HAND_SIZE; i++) {
+        if (player->hand[i] != 0) {
+            continue;
+        }
+        player->hand[i] = deck[init_deck_top + i];
+        player->hand_card_count = player->hand_card_count + 1;
+        *deck_top = *deck_top + 1;
     }
 }
 
@@ -278,6 +284,10 @@ void game_loop() {
                 break;
             }
             puts("I don't understand, try again. E.g. \'use 1\'");
+        }
+
+        if (player->hand_card_count == 1) {
+            deal_hand(player, deck_top, deck);
         }
 
         free(user_command);
