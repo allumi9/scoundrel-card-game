@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,6 +111,9 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
         if (player->hand[i] != 0) {
             continue;
         }
+        // if (init_deck_top + i >= MAX_CARDS) {
+        //     continue;
+        // }
         player->hand[i] = deck[init_deck_top + i];
         player->hand_card_count = player->hand_card_count + 1;
         *deck_top = *deck_top + 1;
@@ -125,6 +129,7 @@ void print_player_status(Player* player) {
     if (player->current_top_monster != 0) {
             printf(" / TOP_MONST: %d", player->current_top_monster->rank);
     }
+    printf("passed weapon and monster\n\n");
 
     printf("\nRoom: ");
     for(int i=0; i<MAX_HAND_SIZE; i++) {
@@ -132,6 +137,7 @@ void print_player_status(Player* player) {
             printf("-none- | ");
             continue;
         }
+        printf("passed if\n\n");
         printf("%s of %s | ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
     }
 
@@ -251,9 +257,21 @@ char** parse_str_into_tokens(char* user_input) {
     return user_command;
 }
 
+bool check_for_winning_cond(Player* player, Card** deck, int deck_top) {
+    crash_if_player_null(player);
+    if (deck_top >= MAX_CARDS - 1 && player->hand_card_count == 0) {
+        printf("Hit the if in winning.\n");
+        return true;
+    } else {
+        return false;
+    }
+}
+
 // For MVP idc about managing rooms that player runs from, not a bug, a feature
 void game_loop() {
     Card* deck[MAX_CARDS];
+    int rooms_ran_from = 0;
+    int rooms_fought = 0;
     int* deck_top = malloc(sizeof(int));
     *deck_top = 0;
     Player* player = calloc(1, sizeof(Player));
@@ -262,7 +280,7 @@ void game_loop() {
     shuffle_deck(deck);
     deal_hand(player, deck_top, deck);
 
-    printf("Hello, this is Scoundrel(Original concept by Zach Gage and Kurt Bieg).\n Just go online for rules, if youre not familiar, i ain't explainin shit\n\n");
+    printf("Hello, this is Scoundrel.\nIf you're new, type help and press enter(You can do this at any point in the game)\n\n");
 
     char *user_input = NULL;
     size_t buff_size = 32;
@@ -286,8 +304,22 @@ void game_loop() {
             puts("I don't understand, try again. E.g. \'use 1\'");
         }
 
+        if (check_for_winning_cond(player, deck, *deck_top)) {
+            printf("YAAAYYY!!! YOU WON!! Good job\n");
+            printf("Rooms you ran from: %d", rooms_ran_from);
+            if (rooms_ran_from > 4) {
+                printf(", you can do better than that!");
+            } else if (rooms_ran_from > 0) {
+                printf(", wow... that's truly impressive");
+            } else {
+                printf(".... PERFECTION!!!!");
+            }
+            puts("");
+        }
+
         if (player->hand_card_count == 1) {
             deal_hand(player, deck_top, deck);
+            rooms_fought++;
         }
 
         free(user_command);

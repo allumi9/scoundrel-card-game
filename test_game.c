@@ -80,3 +80,20 @@ Test(parse_user_input, commandIsParsedCorrectly) {
         cr_assert_str_eq(user_command[i], expected_command[i]);
     }
 }
+
+Test(deal_hand, deck_empty) {
+    Card* deck[MAX_CARDS];
+    int rooms_ran_from = 0;
+    int rooms_fought = 0;
+    int* deck_top = malloc(sizeof(int));
+    *deck_top = 38;
+    Player* player = calloc(1, sizeof(Player));
+    player->health = 20;
+    init_deck(deck);
+    shuffle_deck(deck);
+    print_player_status(player);
+    deal_hand(player, deck_top, deck);
+    cr_log_warn("hand was dealt");
+
+    print_player_status(player);
+}
