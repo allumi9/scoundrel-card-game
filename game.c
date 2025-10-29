@@ -102,7 +102,7 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
         exit(1);
     }
     if (player->hand == 0) {
-        player->hand = malloc(MAX_HAND_SIZE * sizeof(Card));
+        player->hand = calloc(MAX_HAND_SIZE, sizeof(Card));
     }
 
     int init_card_count = player->hand_card_count;
@@ -111,9 +111,9 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
         if (player->hand[i] != 0) {
             continue;
         }
-        // if (init_deck_top + i >= MAX_CARDS) {
-        //     continue;
-        // }
+        if (init_deck_top + i >= MAX_CARDS) {
+            continue;
+        }
         player->hand[i] = deck[init_deck_top + i];
         player->hand_card_count = player->hand_card_count + 1;
         *deck_top = *deck_top + 1;
@@ -129,15 +129,16 @@ void print_player_status(Player* player) {
     if (player->current_top_monster != 0) {
             printf(" / TOP_MONST: %d", player->current_top_monster->rank);
     }
-    printf("passed weapon and monster\n\n");
 
     printf("\nRoom: ");
     for(int i=0; i<MAX_HAND_SIZE; i++) {
+        if (player->hand == 0) {
+            fprintf(stderr, "Error: hand wasn't initialized");
+        }
         if (player->hand[i] == 0) {
             printf("-none- | ");
             continue;
         }
-        printf("passed if\n\n");
         printf("%s of %s | ", rank_to_cardName(player->hand[i]->rank), enum_to_suit_translation(player->hand[i]->suit));
     }
 
@@ -149,8 +150,8 @@ void fight_with_weapon(Player* player, Card* monster) {
     int damage = monster->rank - player->weapon->rank;
 
     if (player->health <= damage) {
-        printf("\nh i j k Lost\n");
-        exit(0);
+        player->health = 0;
+        return;
     }
 
     if (damage > 0) {
@@ -164,8 +165,8 @@ void fight_with_hands(Player* player, Card* monster) {
     int damage = monster->rank;
 
     if (player->health <= damage) {
-        printf("\nh i j k Lost\n");
-        exit(0);
+        player->health = 0;
+        return;
     }
 
     player->health = player->health - damage;
@@ -267,6 +268,15 @@ bool check_for_winning_cond(Player* player, Card** deck, int deck_top) {
     }
 }
 
+bool check_for_losing_cond(Player* player) {
+    crash_if_player_null(player);
+
+    if (player->health == 0) {
+        return true;
+    }
+    return false;
+}
+
 // For MVP idc about managing rooms that player runs from, not a bug, a feature
 void game_loop() {
     Card* deck[MAX_CARDS];
@@ -302,6 +312,11 @@ void game_loop() {
                 break;
             }
             puts("I don't understand, try again. E.g. \'use 1\'");
+        }
+
+        if (check_for_losing_cond(player)) {
+            printf("H i j k Lost :[, try again though!\n");
+            printf("You made it to room %d, and ran %d times", rooms_fought, rooms_ran_from);
         }
 
         if (check_for_winning_cond(player, deck, *deck_top)) {

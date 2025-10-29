@@ -11,4 +11,4 @@ gcc version is 11.4.0\
 **Clean up**: `make clean` (this is for cleaning up .o objects)\
 
 ### Dev status
-You can play through a single room :)
+You can win, it's just that it'll crash as soon as you do, so you can take that as a prize :D

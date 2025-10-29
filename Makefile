@@ -11,4 +11,4 @@ clean:
 	rm *.o
 
 test:
-	gcc test_game.c game.c -lcriterion -o test_bin && ./test_bin
+	gcc test_game.c game.c -lcriterion -o test_bin && ./test_bin --verbose 2

@@ -83,17 +83,23 @@ Test(parse_user_input, commandIsParsedCorrectly) {
 
 Test(deal_hand, deck_empty) {
     Card* deck[MAX_CARDS];
-    int rooms_ran_from = 0;
-    int rooms_fought = 0;
     int* deck_top = malloc(sizeof(int));
-    *deck_top = 38;
+    *deck_top = 40;
     Player* player = calloc(1, sizeof(Player));
     player->health = 20;
     init_deck(deck);
     shuffle_deck(deck);
+    deal_hand(player, deck_top, deck);
+    print_player_status(player);
+
+    for (int i=1; i < 5; i++) {
+        use_card(player, i);
+    }
     print_player_status(player);
     deal_hand(player, deck_top, deck);
-    cr_log_warn("hand was dealt");
 
+    for (int i=0; i < 4; i++) {
+        cr_assert_not(player->hand[i]);
+    }
     print_player_status(player);
 }
