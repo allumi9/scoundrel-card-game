@@ -11,4 +11,8 @@ clean:
 	rm *.o
 
 test:
-	gcc test_game.c game.c -lcriterion -o test_bin && ./test_bin --verbose 2
+	gcc test_game.c game.c -lcriterion -o test_bin && ./test_bin --jobs 1
+
+
+test-verbose:
+	gcc test_game.c game.c -lcriterion -o test_bin && ./test_bin --verbose

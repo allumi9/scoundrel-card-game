@@ -31,7 +31,7 @@ char* rank_to_cardName(int rank_int) {
     }
 }
 
-void init_deck(Card** deck) {
+void init_deck(Deck* deck) {
     int card_counter = 0;
     for (int suit_ind=1; suit_ind < 5; suit_ind++) {
         enum Suit curr_suit = suit_ind - 1;
@@ -46,13 +46,14 @@ void init_deck(Card** deck) {
             Card *newCard = malloc(sizeof(Card));
             newCard->rank = card_rank;
             newCard->suit = curr_suit;
-            deck[card_counter] = newCard;
+            deck->cards[card_counter] = newCard;
             card_counter++;
+            deck->size++;
         }
     }
 }
 
-void shuffle_deck(Card** deck) {
+void shuffle_deck(Deck* deck) {
     const int number_of_permutations = 400;
     srand(time(NULL));
 
@@ -61,31 +62,32 @@ void shuffle_deck(Card** deck) {
         int index2 = rand() % MAX_CARDS;
 
         Card* temp_card = malloc(sizeof(Card));
-        temp_card->rank = deck[index1]->rank;
-        temp_card->suit = deck[index1]->suit;
+        temp_card->rank = deck->cards[index1]->rank;
+        temp_card->suit = deck->cards[index1]->suit;
 
-        deck[index1]->rank = deck[index2]->rank;
-        deck[index1]->suit = deck[index2]->suit;
+        deck->cards[index1]->rank = deck->cards[index2]->rank;
+        deck->cards[index1]->suit = deck->cards[index2]->suit;
 
-        deck[index2]->rank = temp_card->rank;
-        deck[index2]->suit = temp_card->suit;
+        deck->cards[index2]->rank = temp_card->rank;
+        deck->cards[index2]->suit = temp_card->suit;
 
         free(temp_card);
     }
 }
 
-void print_deck(Card** deck) {
-    for (int i=0; i<MAX_CARDS; i++) {
-        printf("%s of %s; ", rank_to_cardName(deck[i]->rank), enum_to_suit_translation(deck[i]->suit));
+void print_deck(Deck* deck) {
+    for (int i=0; i<deck->size; i++) {
+        printf("%s of %s; ", rank_to_cardName(deck->cards[i]->rank), enum_to_suit_translation(deck->cards[i]->suit));
         if ((i+1) % 4 == 0 && i >> 0) {
             puts("");
         }
     }
 }
 
-void free_deck(Card** deck) {
-    for (int i=0; i<MAX_CARDS; i++) {
-        free(deck[i]);
+void free_deck(Deck* deck) {
+    // printf("Clearing the deck\n");
+    for (int i=0; i<deck->size; i++) {
+        free(deck->cards[i]);
     }
 }
 
@@ -95,7 +97,7 @@ void crash_if_player_null(Player* player) {
     }
 }
 
-void deal_hand(Player* player, int* deck_top, Card** deck) {
+void deal_hand(Player* player, Deck* deck) {
     crash_if_player_null(player);
     if (player->hand_card_count == MAX_HAND_SIZE) {
         fprintf(stderr, "Error: Tried dealing hand when hand is full.");
@@ -106,7 +108,7 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
     }
 
     int init_card_count = player->hand_card_count;
-    int init_deck_top = *deck_top;
+    int init_deck_top = deck->top_card;
     for (int i=0; i < MAX_HAND_SIZE; i++) {
         if (player->hand[i] != 0) {
             continue;
@@ -114,9 +116,9 @@ void deal_hand(Player* player, int* deck_top, Card** deck) {
         if (init_deck_top + i >= MAX_CARDS) {
             continue;
         }
-        player->hand[i] = deck[init_deck_top + i];
+        player->hand[i] = deck->cards[init_deck_top + i];
         player->hand_card_count = player->hand_card_count + 1;
-        *deck_top = *deck_top + 1;
+        deck->top_card = deck->top_card + 1;
     }
 }
 
@@ -258,9 +260,9 @@ char** parse_str_into_tokens(char* user_input) {
     return user_command;
 }
 
-bool check_for_winning_cond(Player* player, Card** deck, int deck_top) {
+bool check_for_winning_cond(Player* player, Deck* deck) {
     crash_if_player_null(player);
-    if (deck_top >= MAX_CARDS - 1 && player->hand_card_count == 0) {
+    if (deck->top_card >= MAX_CARDS - 1 && player->hand_card_count == 0) {
         printf("Hit the if in winning.\n");
         return true;
     } else {
@@ -277,19 +279,37 @@ bool check_for_losing_cond(Player* player) {
     return false;
 }
 
+void run_from_room(Player* player, Deck* deck) {
+    if (!player->ran_from_previous) {
+        int cards_left_count = 0;
+        for (int i=0; i < MAX_HAND_SIZE; i++) {
+
+        }
+    } else {
+        printf("You ran from the previous room, gotta fight this one.");
+        return;
+    }
+}
+
 // For MVP idc about managing rooms that player runs from, not a bug, a feature
 void game_loop() {
-    Card* deck[MAX_CARDS];
+    Card** cards = calloc(MAX_CARDS, sizeof(Card));
+    Deck* deck = calloc(1, sizeof(Deck));
+    deck->cards = cards;
+    fprintf(stderr, "Defined deck\n");
+
     int rooms_ran_from = 0;
     int rooms_fought = 0;
-    int* deck_top = malloc(sizeof(int));
-    *deck_top = 0;
+
     Player* player = calloc(1, sizeof(Player));
     player->health = 20;
     init_deck(deck);
+    fprintf(stderr, "Inited deck\n");
     shuffle_deck(deck);
-    deal_hand(player, deck_top, deck);
+    fprintf(stderr, "Shuffled deck\n");
+    deal_hand(player, deck);
 
+    fprintf(stderr, "Dealt hand\n");
     printf("Hello, this is Scoundrel.\nIf you're new, type help and press enter(You can do this at any point in the game)\n\n");
 
     char *user_input = NULL;
@@ -319,7 +339,7 @@ void game_loop() {
             printf("You made it to room %d, and ran %d times", rooms_fought, rooms_ran_from);
         }
 
-        if (check_for_winning_cond(player, deck, *deck_top)) {
+        if (check_for_winning_cond(player, deck)) {
             printf("YAAAYYY!!! YOU WON!! Good job\n");
             printf("Rooms you ran from: %d", rooms_ran_from);
             if (rooms_ran_from > 4) {
@@ -333,8 +353,9 @@ void game_loop() {
         }
 
         if (player->hand_card_count == 1) {
-            deal_hand(player, deck_top, deck);
+            deal_hand(player, deck);
             rooms_fought++;
+            player->ran_from_previous = false;
         }
 
         free(user_command);

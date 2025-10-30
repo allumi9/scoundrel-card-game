@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <time.h>
 #pragma once
 #define MAX_CARDS 44
@@ -17,25 +18,32 @@ struct Card {
     enum Suit suit;
 } typedef Card;
 
+struct Deck {
+    Card** cards;
+    int size;
+    int top_card;
+} typedef Deck;
+
 struct Player {
     Card** hand;
     int hand_card_count;
     int8_t health;
     Card* weapon;
     Card* current_top_monster;
+    bool ran_from_previous;
 } typedef Player;
 
 char* enum_to_suit_translation(enum Suit suit_int);
 char* rank_to_cardName(int rank_int);
 
-void init_deck(Card** deck);
-void shuffle_deck(Card** deck);
-void print_deck(Card** deck);
-void free_deck(Card** deck);
+void init_deck(Deck* deck);
+void shuffle_deck(Deck* deck);
+void print_deck(Deck* deck);
+void free_deck(Deck* deck);
 
 void crash_if_player_null(Player* player);
 
-void deal_hand(Player* player, int* deck_top, Card** deck);
+void deal_hand(Player* player, Deck* deck);
 
 void print_player_status(Player* player);
 

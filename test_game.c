@@ -20,12 +20,14 @@ Test(rank_transl, numberIsFaceCard) {
 }
 
 Test(deck_init, noRedFaceCards) {
-    Card* deck[MAX_CARDS];
+    Card** cards = calloc(MAX_CARDS, sizeof(Card));
+    Deck* deck = calloc(1, sizeof(Deck));
+    deck->cards = cards;
     init_deck(deck);
 
     for (int i = 0; i < MAX_CARDS; i++) {
-        if (deck[i]->suit == DIAMONDS || deck[i]->suit == HEARTS) {
-            _Bool isFaceCard = deck[i]->rank < 11;
+        if (deck->cards[i]->suit == DIAMONDS || deck->cards[i]->suit == HEARTS) {
+            _Bool isFaceCard = deck->cards[i]->rank < 11;
 
             cr_assert(isFaceCard);
         }
@@ -82,21 +84,23 @@ Test(parse_user_input, commandIsParsedCorrectly) {
 }
 
 Test(deal_hand, deck_empty) {
-    Card* deck[MAX_CARDS];
-    int* deck_top = malloc(sizeof(int));
-    *deck_top = 40;
+    Card** cards = calloc(MAX_CARDS, sizeof(Card));
+    Deck* deck = calloc(1, sizeof(Deck));
+    deck->cards = cards;
+    deck->top_card = 40;
+
     Player* player = calloc(1, sizeof(Player));
     player->health = 20;
     init_deck(deck);
     shuffle_deck(deck);
-    deal_hand(player, deck_top, deck);
+    deal_hand(player, deck);
     print_player_status(player);
 
     for (int i=1; i < 5; i++) {
         use_card(player, i);
     }
     print_player_status(player);
-    deal_hand(player, deck_top, deck);
+    deal_hand(player, deck);
 
     for (int i=0; i < 4; i++) {
         cr_assert_not(player->hand[i]);
