@@ -5,6 +5,16 @@
 #include <stdlib.h>
 #include "game.h"
 
+Test(deck_init, see_manual) {
+    Card** cards = calloc(MAX_CARDS, sizeof(Card));
+    Deck* deck = calloc(1, sizeof(Deck));
+    deck->cards = cards;
+    init_deck(deck);
+    shuffle_deck(deck);
+
+    print_deck(deck);
+}
+
 Test(enum_transl, suitExists) {
     char* result = malloc(sizeof(enum Suit));
     result = enum_to_suit_translation(SPADES);

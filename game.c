@@ -104,19 +104,19 @@ void deal_hand(Player* player, Deck* deck) {
         exit(1);
     }
     if (player->hand == 0) {
-        player->hand = calloc(MAX_HAND_SIZE, sizeof(Card));
+        player->hand = calloc(MAX_HAND_SIZE, sizeof(Card*));
     }
 
     int init_card_count = player->hand_card_count;
-    int init_deck_top = deck->top_card;
     for (int i=0; i < MAX_HAND_SIZE; i++) {
         if (player->hand[i] != 0) {
             continue;
         }
-        if (init_deck_top + i >= deck->size) {
-            continue;
+        if (deck->cards[deck->top_card] == 0) {
+            printf("Dungeone is cleared, you see light...\n");
+            return;
         }
-        player->hand[i] = deck->cards[init_deck_top + i];
+        player->hand[i] = deck->cards[deck->top_card];
         player->hand_card_count = player->hand_card_count + 1;
         deck->top_card = deck->top_card + 1;
     }
@@ -320,6 +320,7 @@ void game_loop() {
     init_deck(deck);
     shuffle_deck(deck);
     deal_hand(player, deck);
+    print_deck(deck);
 
     printf("Hello, this is Scoundrel.\nIf you're new, type help and press enter(You can do this at any point in the game)\n\n");
 
@@ -340,6 +341,7 @@ void game_loop() {
             use_card(player, user_command[1][0] - '0');
         } else if (strcmp(user_command[0], "run\n") == 0) {
             run_from_room(player, deck);
+            puts("");
         } else {
             if (strcmp(user_command[0], end_phrase) == 0) {
                 break;
@@ -350,6 +352,7 @@ void game_loop() {
         if (check_for_losing_cond(player)) {
             printf("H i j k Lost :[, try again though!\n");
             printf("You made it to room %d, and ran %d times", rooms_fought, rooms_ran_from);
+            exit(0);
         }
 
         if (check_for_winning_cond(player, deck)) {
