@@ -7,7 +7,6 @@
 #include <time.h>
 #include "game.h"
 
-
 char* enum_to_suit_translation(enum Suit suit_int) {
     switch (suit_int) {
         case SPADES: return "Spades";
@@ -85,10 +84,11 @@ void print_deck(Deck* deck) {
 }
 
 void free_deck(Deck* deck) {
-    // printf("Clearing the deck\n");
-    for (int i=0; i<deck->size; i++) {
+    for (int i=0; i<MAX_CARDS; i++) {
         free(deck->cards[i]);
     }
+    free(deck->cards);
+    free(deck);
 }
 
 void crash_if_player_null(Player* player) {
@@ -113,7 +113,7 @@ void deal_hand(Player* player, Deck* deck) {
         if (player->hand[i] != 0) {
             continue;
         }
-        if (init_deck_top + i >= MAX_CARDS) {
+        if (init_deck_top + i >= deck->size) {
             continue;
         }
         player->hand[i] = deck->cards[init_deck_top + i];
@@ -262,8 +262,7 @@ char** parse_str_into_tokens(char* user_input) {
 
 bool check_for_winning_cond(Player* player, Deck* deck) {
     crash_if_player_null(player);
-    if (deck->top_card >= MAX_CARDS - 1 && player->hand_card_count == 0) {
-        printf("Hit the if in winning.\n");
+    if (deck->top_card >= deck->size - 1 && player->hand_card_count == 0) {
         return true;
     } else {
         return false;
@@ -282,21 +281,36 @@ bool check_for_losing_cond(Player* player) {
 void run_from_room(Player* player, Deck* deck) {
     if (!player->ran_from_previous) {
         int cards_left_count = 0;
-        for (int i=0; i < MAX_HAND_SIZE; i++) {
-
+        if (player->hand == 0) {
+            fprintf(stderr, "Error: hand is null\n");
+            exit(1);
         }
+        for (int i=0; i < MAX_HAND_SIZE; i++) {
+            if (player->hand[i] != 0) {
+                cards_left_count++;
+                deck->cards[deck->size] = player->hand[i];
+                player->hand[i] = 0;
+                deck->size++;
+            }
+        }
+        player->hand_card_count = 0;
     } else {
         printf("You ran from the previous room, gotta fight this one.");
         return;
     }
 }
 
-// For MVP idc about managing rooms that player runs from, not a bug, a feature
+void free_player(Player* player) {
+    free(player->current_top_monster);
+    free(player->hand);
+    free(player->weapon);
+}
+
 void game_loop() {
-    Card** cards = calloc(MAX_CARDS, sizeof(Card));
+    Card** cards = calloc(MAX_CARDS * 2, sizeof(Card));
     Deck* deck = calloc(1, sizeof(Deck));
     deck->cards = cards;
-    fprintf(stderr, "Defined deck\n");
+    deck->top_card = 0;
 
     int rooms_ran_from = 0;
     int rooms_fought = 0;
@@ -304,12 +318,9 @@ void game_loop() {
     Player* player = calloc(1, sizeof(Player));
     player->health = 20;
     init_deck(deck);
-    fprintf(stderr, "Inited deck\n");
     shuffle_deck(deck);
-    fprintf(stderr, "Shuffled deck\n");
     deal_hand(player, deck);
 
-    fprintf(stderr, "Dealt hand\n");
     printf("Hello, this is Scoundrel.\nIf you're new, type help and press enter(You can do this at any point in the game)\n\n");
 
     char *user_input = NULL;
@@ -327,6 +338,8 @@ void game_loop() {
 
         if (strcmp(user_command[0], "use") == 0) {
             use_card(player, user_command[1][0] - '0');
+        } else if (strcmp(user_command[0], "run\n") == 0) {
+            run_from_room(player, deck);
         } else {
             if (strcmp(user_command[0], end_phrase) == 0) {
                 break;
@@ -350,6 +363,7 @@ void game_loop() {
                 printf(".... PERFECTION!!!!");
             }
             puts("");
+            exit(0);
         }
 
         if (player->hand_card_count == 1) {
@@ -357,10 +371,16 @@ void game_loop() {
             rooms_fought++;
             player->ran_from_previous = false;
         }
+        if (player->hand_card_count == 0) {
+            deal_hand(player, deck);
+            rooms_ran_from++;
+            player->ran_from_previous = true;
+        }
 
         free(user_command);
     } while (strcmp(user_input, end_phrase) != 0);
 
     free_deck(deck);
+    free_player(player);
     free(user_input);
 }

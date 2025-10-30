@@ -107,3 +107,31 @@ Test(deal_hand, deck_empty) {
     }
     print_player_status(player);
 }
+
+// I tested manually and it works, so this is for later to rewrite
+// Test(deal_hand, deck_empty_AfterRunning) {
+//     Card** cards = calloc(MAX_CARDS, sizeof(Card));
+//     Deck* deck = calloc(1, sizeof(Deck));
+//     deck->cards = cards;
+//     deck->top_card = 40;
+
+//     Player* player = calloc(1, sizeof(Player));
+//     player->health = 20;
+//     init_deck(deck);
+//     shuffle_deck(deck);
+//     print_deck(deck);
+//     deal_hand(player, deck);
+//     print_player_status(player);
+
+//     run_from_room(player, deck);
+//     print_deck(deck);
+
+//     print_player_status(player);
+//     deal_hand(player, deck);
+//     print_player_status(player);
+
+//     for (int i=0; i < 4; i++) {
+//         cr_assert_not(player->hand[i]);
+//     }
+//     print_player_status(player);
+// }

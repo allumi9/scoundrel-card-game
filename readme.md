@@ -6,9 +6,10 @@ I actually made this because I don't have a d20 cube to record health and didn't
 There is now an actual Makefile wow-wow.\
 gcc version is 11.4.0\
 \
-**Compile**: `make`\
-**Test**: `make test` (Make sure to have [criterion](https://github.com/Snaipe/Criterion) installed)\
-**Clean up**: `make clean` (this is for cleaning up .o objects)\
+**Compile:** `make`\
+**Running after compilation:** `./app`\
+**Test:** `make test` (Make sure to have [criterion](https://github.com/Snaipe/Criterion) installed)\
+**Clean up:** `make clean` (this is for cleaning up .o objects)\
 
 ### Dev status
-You can win, it's just that it'll crash as soon as you do, so you can take that as a prize :D
+Game is done, but it might leak memory/crash since it's not fully tested yet. So if you are running an older OS, or something that doesn't do memory clean ups after program exit, I warned you!

@@ -56,6 +56,8 @@ void take_weapon(Player* player, Card* card);
 void use_card(Player* player, int card_index);
 char** parse_str_into_tokens(char* user_input);
 
+void run_from_room(Player* player, Deck* deck);
+
 void game_loop();
 
 void print_help();
