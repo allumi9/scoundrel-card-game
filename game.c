@@ -320,7 +320,6 @@ void game_loop() {
     init_deck(deck);
     shuffle_deck(deck);
     deal_hand(player, deck);
-    print_deck(deck);
 
     printf("Hello, this is Scoundrel.\nIf you're new, type help and press enter(You can do this at any point in the game)\n\n");
 
